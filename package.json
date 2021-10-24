@@ -1,0 +1,23 @@
+
+{                                                                                
+  "name": "be.eloistree.booleanregistercore",                              
+  "displayName": "Boolean Register Core",                        
+  "version": "0.0.1",                         
+  "unity": "2018.1",                             
+  "unityRelease": "",                             
+  "description": "Container of booleans as core package to be used for OMI with network, Job and compute later",                         
+  "keywords": ["Script","Tool"],                       
+  "dependencies":{},     
+  "relatedPackages":{},     
+  "samples" : [],     
+  "author" : {
+"name":"",
+"mail":"",
+"url":""},     
+  "repository":{
+"type":"Git",
+"url":"https://github.com/EloiStree/2021_10_24_BooleanRegisterCore.git",
+"footprint":"",
+"revision":""},     
+  "category": "Script"                   
+} 

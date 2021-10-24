@@ -1,0 +1,21 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+int m_width;
+StructuredBuffer<int> m_32ByteInInt;
+RWTexture2D<float> m_result;
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    int index = id.x + id.y * m_width;
+
+    //Div32 and %32
+    int intIndex = (int)(index * 0.03125);
+    int bitOffset = index- intIndex*32;
+    int intSelected = m_32ByteInInt[intIndex];
+    bool bitState= (intSelected & (1 << bitOffset)) != 0;
+    float v = bitState ? 1.0 : 0.0;
+    m_result[id.xy] = float4(v, v, v, 1);
+    
+}
