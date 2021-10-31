@@ -1,0 +1,89 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+uint m_pixelWidth = 0;
+uint m_lineCount = 0;
+uint m_columnCount = 0;
+uint m_totalCellsCount = 0;
+StructuredBuffer<int> m_32ByteInInt;
+StructuredBuffer<uint> m_columnOffset;
+RWStructuredBuffer<uint> m_valuePerPixel;
+RWTexture2D<float4> m_result;
+uint m_timeRangeStart;
+uint m_timeRangeEnd;
+uint m_timeInMsPerPixel;
+
+
+int GetArrayIndex(uint lineIndex, uint columnIndex) {
+    while (columnIndex >= m_columnCount)
+        columnIndex -= m_columnCount;
+    return (lineIndex * m_columnCount) + columnIndex;
+}
+int GetArrayIndexWithOffset(uint lineIndex, uint columnIndex) {
+    return GetArrayIndex(lineIndex, m_columnOffset[lineIndex] + columnIndex);
+}
+int GetArrayLineColumn(uint lineIndex, uint columnIndex) {
+    return (lineIndex * m_columnCount) + columnIndex;
+}int GetArrayLineColumnValue(uint lineIndex, uint columnIndex) {
+    return m_32ByteInInt[GetArrayLineColumn(lineIndex, columnIndex)];
+}
+
+
+[numthreads(8, 8, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    float pctOfPixel = id.x / (float)m_pixelWidth;
+    uint timeToCheck = m_timeRangeStart + (m_timeRangeEnd - m_timeRangeStart) * pctOfPixel;
+   
+
+    //if (id.y == 0)
+    //    m_valuePerPixel[id.x] = timeToCheck;
+
+    int previous=0, current=0;
+    for (uint i = 0; i < m_columnCount; i++)
+    {
+        current = GetArrayLineColumnValue(id.y, i);
+
+        if (current < 0)
+            current *= -1;
+
+        if (id.x == 0) {
+            previous = (GetArrayLineColumnValue(id.y, m_columnCount-1));
+        }
+        else {
+            previous = (GetArrayLineColumnValue(id.y, i-1));
+        }
+        if (previous < 0)
+            previous *= -1;
+
+        if (current == 0 || previous == 0) {
+            continue;
+            if (id.y == 0)
+            m_valuePerPixel[id.x] = 0;
+        }
+        else {
+
+            if (id.y == 0)
+                m_valuePerPixel[id.x] = current;
+        }
+
+
+        if (timeToCheck >= previous && timeToCheck <= current)
+        {
+            int value = GetArrayLineColumnValue(id.y, i);
+            if (value != 0) {
+
+                float v = value > 0 ? 1.0 : 0.5;
+                m_result[id.xy] = float4(0, v, 0, 1);
+            }
+            return;
+        }
+    }
+    //uint index =(uint)( id.x + id.y * m_columnCount);
+    
+
+
+        m_result[id.xy] = float4(pctOfPixel, 0, 0, 1.0- pctOfPixel);
+   
+
+}

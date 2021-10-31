@@ -1,0 +1,37 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+uint m_lineCount=0;
+uint m_columnCount=0;
+uint m_totalCellsCount=0;
+StructuredBuffer<int> m_32ByteInInt;
+StructuredBuffer<uint> m_columnOffset;
+RWTexture2D<float4> m_result;
+
+int GetArrayIndex(uint lineIndex, uint columnIndex) {
+    while (columnIndex >= m_columnCount)
+        columnIndex -= m_columnCount;
+    return (lineIndex * m_columnCount) + columnIndex;
+}
+int GetArrayIndexWithOffset(uint lineIndex, uint columnIndex) {
+    return GetArrayIndex(lineIndex, m_columnOffset[lineIndex] + columnIndex);
+}
+int GetArrayLineColumn(uint lineIndex, uint columnIndex) {
+    return (lineIndex * m_columnCount) + columnIndex;
+}
+
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    //uint index =(uint)( id.x + id.y * m_columnCount);
+    int value = m_32ByteInInt[GetArrayLineColumn(id.y, id.x)];
+    if (value != 0) {
+
+        float v = value > 0 ? 1.0 : 0.0;
+        m_result[id.xy] = float4(v, v, v, 1);
+    }
+    else {
+        m_result[id.xy] = float4(0.5, 0.5, 0.5, 1);
+    }
+}
